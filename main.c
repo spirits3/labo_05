@@ -4,22 +4,39 @@
 int* genereGalton(int nombreBille, int nombreEtape, int* tab, size_t tabSize);
 void* galton(int nombreBille, int nombreEtape);
 
+void afficheGalton(int nombreEtape, int* tab, size_t tabSize) {
+    int tailleCase = 6;
+    for(int etape = 0; etape < nombreEtape; ++etape) {
+        printf("%d : ", etape);
+        for(int i = 0; i < nombreEtape - etape; ++i) {
+            printf("%*s", tailleCase / 2 + 1, " ");
+        }
+        for(size_t decalage = 0; decalage <= etape; ++decalage) {
+            printf("%*d ", tailleCase, *(tab+etape*(etape+1) / 2 +decalage));
+        }
+        printf("\n");
+    }
+}
+
 void* galton(int nombreBille, int nombreEtape) {
     size_t tabSize = nombreEtape * (nombreEtape + 1) / 2;
     int* tab = (int*)calloc(tabSize, sizeof(int));
     if(!tab) return tab;
 
     genereGalton(nombreBille, nombreEtape, tab, tabSize);
+    afficheGalton(nombreEtape, tab, tabSize);
+    
     free(tab);
-
+    return tab;
 }
 
 int* genereGalton(int nombreBille, int nombreEtape, int* tab, size_t tabSize) {
     *tab = nombreBille;
+    srand(time(NULL));
     for(size_t etape = 1; etape < nombreEtape; ++etape) {
         for(size_t decalage = 0; decalage < etape; ++decalage) {
-            for(int bille = 0; bille < *(tab + (etape - 1) + decalage); ++bille) 
-                ++*(tab + etape + decalage + rand()%2);
+            for(int bille = 0; bille < *(tab + etape*(etape-1)/2 + decalage); ++bille) 
+                ++*(tab + (etape+1)*etape / 2 + decalage + rand()%2);
         }
     }
 
@@ -42,11 +59,10 @@ int main(void) {
 		printf("%s", "Entrez le nombre de rangees de compteurs [10 - 20] :");
 		scanf("%2d", &nombreEtape);
 		while(getchar() != '\n');
-	} while(nombreEtape < 10 || nombreEtape > 20);
+	} while(nombreEtape < 1 || nombreEtape > 20);
 
 
-	printf("%d", galton(nombreBille, nombreEtape);
-)
+	printf("%p", (void*)galton(nombreBille, nombreEtape));
 
 	return EXIT_SUCCESS;
 }
