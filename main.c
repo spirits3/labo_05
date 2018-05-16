@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <assert.h>
 
 int* genereGalton(int nombreBille, int nombreEtape, int* tab);
 void* galton(int nombreBille, int nombreEtape);
@@ -19,6 +18,7 @@ void* galton(int nombreBille, int nombreEtape) {
     genereGalton(nombreBille, nombreEtape, tab);
     afficheGalton(nombreEtape, tab);
     afficheHistogramme(nombreEtape, tab);
+
     
     free(tab);
     return tab;
@@ -51,6 +51,7 @@ void afficheGalton(int nombreEtape, int* tab) {
     }
 }
 
+<<<<<<< HEAD
 void afficheHistogramme(int nombreEtape, int* tab){
     int tailleCase = 5;
     for(int etape = 0; etape < nombreEtape; ++etape) {
@@ -65,11 +66,14 @@ void afficheHistogramme(int nombreEtape, int* tab){
     }
 }
 
+=======
+>>>>>>> 77f12a3c7870931bd3131fb1553d1dbe7403993f
 int main(void) {
 
   int nombreBille;
   int nombreEtape;
 
+<<<<<<< HEAD
   do {
     printf("%s", "Entrez le nombre de billes [1000 - 30000] : ");
     scanf("%5d", &nombreBille);
@@ -82,9 +86,30 @@ int main(void) {
     scanf("%2d", &nombreEtape);
     while(getchar() != '\n');
   } while(nombreEtape < 10 || nombreEtape > 20);
+=======
+	do {
+		printf("%s", "Entrez le nombre de billes [1000 - 30000] : ");
+		scanf("%5d", &nombreBille);
+	    while (getchar()!='\n');
+
+	} while(nombreBille < 1000 || nombreBille > 30000);
+
+	do {
+		printf("%s", "Entrez le nombre de rangees de compteurs [10 - 20] : ");
+		scanf("%2d", &nombreEtape);
+		while(getchar() != '\n');
+	} while(nombreEtape < 10 || nombreEtape > 20);
+>>>>>>> 77f12a3c7870931bd3131fb1553d1dbe7403993f
 
   galton(nombreBille, nombreEtape);
 
+<<<<<<< HEAD
 
   return EXIT_SUCCESS;
 }
+=======
+	printf("%p", (void*)galton(nombreBille, nombreEtape));
+
+	return EXIT_SUCCESS;
+}
+>>>>>>> 77f12a3c7870931bd3131fb1553d1dbe7403993f
