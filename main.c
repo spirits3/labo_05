@@ -1,53 +1,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 
-#define VIDER_STDIN             do{char c; while((c = (char)getchar()) != '\n' && c != EOF);} while(0)
+// VIDAGE DE STDIN PORTABLE
+#define VIDER_STDIN         do{char c; while((c = (char)getchar()) != '\n' \
+                               && c != EOF);} while(0)
 
-#define HISTOGRAMME_MAX_COLONNE 15
-#define NOMBRE_BILLE_MIN        1000
-#define NOMBRE_BILLE_MAX        30000
-#define NOMBRE_ETAPE_MIN        10
-#define NOMBRE_ETAPE_MAX        20
+// PERMET LA CONVERSION D'UN DEFINE ENTIER EN CHAINE DE CARARCTERES
+#define STR_HELPER(x)       #x
+#define STR(x)              STR_HELPER(x)
 
-unsigned* genereGalton(unsigned nombreBille, unsigned nombreEtape, unsigned* tab);
-void galton(unsigned nombreBille, unsigned nombreEtape);
-void afficheGalton(unsigned nombreEtape, unsigned* tab, unsigned tailleCase);
-unsigned* genereHistogramme(unsigned* tabDerniereEtape, unsigned* histogramme, size_t tailleTab);
-void afficheHistogramme(unsigned* histogramme, size_t tailleHistogramme, unsigned tailleCase);
+// CONSTANTES ENTIERES (ou CHAR)
+#define NBR_BILLE_MIN       1000
+#define NBR_BILLE_MAX       30000
+#define NBR_ETAPE_MIN       10
+#define NBR_ETAPE_MAX       20
+#define HISTO_HAUTEUR_MAX   15
+#define HISTO_SYMBOLE       '*'
+
+// CONSTANTES LITERALLES 
+#define TXT_NBR_BILLE       "Entrez le nombre de billes [" STR(NBR_BILLE_MIN) \
+                            " - " STR(NBR_BILLE_MAX) "] : "
+#define TXT_NBR_ETAPE       "Entrez le nombre de rangees de compteurs [" STR(NBR_ETAPE_MIN) \
+                            " - " STR(NBR_ETAPE_MAX) "] : "
+#define TXT_ERREUR_SAISIE   "Saisie incorrecte. Veuillez SVP recommencer.\n"
+
+// FONCTION PRINCIPALE
+void galton(unsigned nbrBille, unsigned nbrEtape);
+
+// FONCTIONS GENERANT LES TABLEAUX
+unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab);
+unsigned* genereHisto(const unsigned* tabDerniereEtape, unsigned* histo, size_t tailleTab);
+
+// FONCTIONS D'AFFICHAGE
+void afficheGalton(unsigned nbrEtape, unsigned* tab, unsigned tailleCase);
+void afficheHisto(const unsigned* histo, size_t tailleHisto, unsigned tailleCase, char symbole);
+
+// FONCTIONS UTILITAIRES
 size_t getPosAEtape(unsigned etape);
-unsigned maxDansTab(unsigned* tab, size_t tailleTab);
-unsigned compteNombreChiffres(unsigned n);
+unsigned maxDansTab(const unsigned* tab, size_t tailleTab);
+unsigned compteNbrChiffres(unsigned n);
+int getIntEntre(int min, int max, const char* requete, const char* erreur);
 
-void galton(unsigned nombreBille, unsigned nombreEtape) {
-    unsigned tailleCase = compteNombreChiffres(nombreBille);
+void galton(unsigned nbrBille, unsigned nbrEtape) {
+    // "Seed" de la fonction rand()
+    srand((unsigned)time(NULL));
+
+    // Declaration du tableau destine a contenir la simulation de la table de Galton
+    // La taille totale correspond a la position dans le tableau de l'etape suivante
+    size_t tailleTab = getPosAEtape(nbrEtape);
+    unsigned* tab = (unsigned*)calloc(tailleTab, sizeof(unsigned));
+    assert(tab); // SI tab == NULL => ASSERT ERROR
+
+    // Declaration du tableau destine a contenir l'histogramme
+    size_t tailleHisto = (size_t)nbrEtape;
+    unsigned* histo = malloc(tailleTab * sizeof(unsigned));
+    assert(histo); // SI histo == NULL => ASSERT ERROR
+    
+    // Determiner le nombre max de chiffre pour une cellule du tableau
+    unsigned tailleCase = compteNbrChiffres(nbrBille);
+    // puis l'arrondir au nombre impair superieur le plus proche
+    // (ceci afin de garantir un affichage agreablement justifier)
     tailleCase += (tailleCase + 1) % 2;
 
-    size_t tabSize = getPosAEtape(nombreEtape);
-    unsigned* tab = (unsigned*)calloc(tabSize, sizeof(unsigned));
-    if(!tab) return;
-
-    size_t tailleHistogramme = (size_t)nombreEtape;
-    unsigned* histogramme = malloc(tabSize * sizeof(unsigned));
-    if(!histogramme) return;
+   
+    // Generation du tableau simultant la table de Galton
+    genereGalton(nbrBille, nbrEtape, tab);
+    // Generation de l'histogramme a partir de la derniere etape de la simulation
+    genereHisto(tab + getPosAEtape(nbrEtape - 1), histo, tailleHisto);
     
-    genereGalton(nombreBille, nombreEtape, tab);
-    genereHistogramme(tab + getPosAEtape(nombreEtape - 1), histogramme, tailleHistogramme);
-    
-    afficheGalton(nombreEtape, tab, tailleCase);
-    printf("\n");
-    afficheHistogramme(histogramme, tailleHistogramme, tailleCase); 
+    // Affichages de la table et de son histogramme
+    afficheGalton(nbrEtape, tab, tailleCase);
+    afficheHisto(histo, tailleHisto, tailleCase, HISTO_SYMBOLE); 
 
+    // Liberation de la memoire
     free(tab);
-    free(histogramme);
+    free(histo);
 }
 
-unsigned* genereGalton(unsigned nombreBille, unsigned nombreEtape, unsigned* tab) {
-    *tab = nombreBille;
-    srand((unsigned)time(NULL));
-    for(unsigned etape = 1; etape < nombreEtape; ++etape) {
-        for(unsigned decalage = 0; decalage < etape; ++decalage) {
-            for(unsigned bille = 0; bille < *(tab + getPosAEtape(etape-1) + decalage); ++bille) 
+unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab) {
+    // Sommet de la table
+    *tab = nbrBille;
+
+    for(unsigned etape = 1; etape != nbrEtape; ++etape) {
+        for(unsigned decalage = 0; decalage != etape; ++decalage) {
+            // Simulation de chaque bille (au nombre indique dans la table a l'etape precedente)
+            for(unsigned bille = 0; bille != *(tab + getPosAEtape(etape-1) + decalage); ++bille) 
+                // rand()%2 fait "tomber" les billes a gauche ou a droite avec une prob. de 1/2
                 ++*(tab + getPosAEtape(etape) + decalage + rand()%2);
         }
     }
@@ -55,9 +95,26 @@ unsigned* genereGalton(unsigned nombreBille, unsigned nombreEtape, unsigned* tab
     return tab;
 }
 
-void afficheGalton(unsigned nombreEtape, unsigned* tab, unsigned tailleCase) {
-    for(unsigned etape = 0; etape < nombreEtape; ++etape) {
-        printf("%*.s", (tailleCase + 1) * (nombreEtape - etape - 1) / 2, " ");
+unsigned* genereHisto(const unsigned* tabDerniereEtape, unsigned* histo, size_t tailleTab) {
+    // Definition du facteur de proportionnalite entre les billes et l'histogramme 
+    // selon la contrainte
+    const double FACTEUR = (double)(maxDansTab(tabDerniereEtape, tailleTab) / HISTO_HAUTEUR_MAX);
+
+    for(size_t i = 0; i != tailleTab; ++i) {
+        // Stockage de la proportion dans le tableau, a l'entier le plus proche
+        *(histo + i) = (unsigned)(*(tabDerniereEtape + i) / FACTEUR + .5);
+    }
+
+    return histo;
+}
+
+void afficheGalton(unsigned nbrEtape, unsigned* tab, unsigned tailleCase) {
+    printf("\n");
+    for(unsigned etape = 0; etape != nbrEtape; ++etape) {
+        // Decallage a gauche en fonction de l'etape en cours
+        // (Le "." du format permet de n'afficher aucun caractere si la taille
+        // mentionnee ensuite est nulle, soit a la derniere etape.)
+        printf("%*.s", (tailleCase + 1) * (nbrEtape - 1 - etape) / 2, " ");
         for(unsigned decalage = 0; decalage <= etape; ++decalage) {
             printf("%*d ", tailleCase, *(tab+getPosAEtape(etape) + decalage));
         }
@@ -65,40 +122,27 @@ void afficheGalton(unsigned nombreEtape, unsigned* tab, unsigned tailleCase) {
     }
 }
 
-unsigned* genereHistogramme(unsigned* tabDerniereEtape, unsigned* histogramme, size_t tailleTab) {
-    if(!histogramme) return NULL;
-
-    unsigned valeurMax = maxDansTab(tabDerniereEtape, tailleTab);
-    double valeurEtoile = (double)(valeurMax) / HISTOGRAMME_MAX_COLONNE;
-
-    for(size_t i = 0; i < tailleTab; ++i) {
-        *(histogramme + i) = (unsigned)(*(tabDerniereEtape + i) / valeurEtoile + 0.5);
-    }
-
-    return histogramme;
-}
-
-void afficheHistogramme(unsigned* histogramme, size_t tailleHistogramme, unsigned tailleCase) {
-    for(unsigned ligne = HISTOGRAMME_MAX_COLONNE; ligne > 0; --ligne) {
-        for(size_t decalage = 0; decalage < tailleHistogramme; ++decalage) {
-            if(*(histogramme + decalage) >= ligne) {
-                printf("%*s* ", tailleCase - 1, "");
-            } else {
-                printf("%*s ", tailleCase, "");
-            }
+void afficheHisto(const unsigned* histo, size_t tailleHisto, unsigned tailleCase, char symbole) {
+    printf("\n");
+    // Affichage de l'histogramme en commencant par les valeurs hautes
+    for(unsigned ligne = HISTO_HAUTEUR_MAX; ligne != 0; --ligne) {
+        for(size_t decalage = 0; decalage != tailleHisto; ++decalage) {
+            // pour chaque colonne, afficher le caractere adequat
+            printf("%*c ", tailleCase, *(histo + decalage) >= ligne ? symbole : ' ');
         }
         printf("\n");
     }
 }
 
 size_t getPosAEtape(unsigned etape) {
+    // somme des n entiers jusqu'a "etape" (Gauss)
     return (size_t)(etape * (etape + 1) / 2);
 }
 
-unsigned maxDansTab(unsigned* tab, size_t tailleTab) {
+unsigned maxDansTab(const unsigned* tab, size_t tailleTab) {
     unsigned max = 0;
 
-    for(size_t i = 0; i < tailleTab; ++i) {
+    for(size_t i = 0; i != tailleTab; ++i) {
         if(*(tab + i) > max) {
             max = *(tab + i);
         }
@@ -107,7 +151,7 @@ unsigned maxDansTab(unsigned* tab, size_t tailleTab) {
     return max;
 }
 
-unsigned compteNombreChiffres(unsigned n) {
+unsigned compteNbrChiffres(unsigned n) {
     unsigned result = 0;
     
     while(n) {
@@ -118,25 +162,32 @@ unsigned compteNombreChiffres(unsigned n) {
     return result;
 }
 
+int getIntEntre(int min, int max, const char* requete, const char* erreur) {
+    int result;
+
+    do {
+        printf("%s", requete);
+        scanf("%d", &result);
+        // Buffer STDIN vider dans tous les cas
+        VIDER_STDIN;
+      // si les bornes ne sont pas respectes, on affiche l'erreur 
+    } while((result < min || result > max) && printf("%s", erreur));
+      // et on recommence la saisie
+    
+    return result;
+}
+
 int main(void) {
 
-    int nombreBille;
-    int nombreEtape;
+    // Contexte de la simulation de la table de Galton (requetes a l'utilisateur)
+    int nbrBille = getIntEntre(NBR_BILLE_MIN, NBR_BILLE_MAX, 
+                               TXT_NBR_BILLE, TXT_ERREUR_SAISIE);
 
-    do {
-        printf("Entrez le nombre de billes [%d - %d] : ", NOMBRE_BILLE_MIN, NOMBRE_BILLE_MAX);
-        scanf("%d", &nombreBille);
-        VIDER_STDIN;
-    } while(nombreBille < NOMBRE_BILLE_MIN || nombreBille > NOMBRE_BILLE_MAX);
+    int nbrEtape = getIntEntre(NBR_ETAPE_MIN, NBR_ETAPE_MAX,
+                               TXT_NBR_ETAPE, TXT_ERREUR_SAISIE);
 
-    do {
-        printf("Entrez le nombre de rangees de compteurs [%d - %d] : ", NOMBRE_ETAPE_MIN, NOMBRE_ETAPE_MAX);
-        scanf("%d", &nombreEtape);
-        VIDER_STDIN;
-    } while(nombreEtape < NOMBRE_ETAPE_MIN || nombreEtape > NOMBRE_ETAPE_MAX);
-    
-    printf("\n");
-    galton((unsigned)nombreBille, (unsigned)nombreEtape);
+    // Delegation du reste de l'execution a la fonction galton(int, int)
+    galton((unsigned)nbrBille, (unsigned)nbrEtape);
 
     return EXIT_SUCCESS;
 }
