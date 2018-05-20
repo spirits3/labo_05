@@ -108,18 +108,18 @@ void galton(unsigned nbrBille, unsigned nbrEtape) {
 }
 
 unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab) {
-    // Sommet de la table
+    // Sommet de la planche 
     *tab = nbrBille;
 
     for(unsigned etape = 1; etape != nbrEtape; ++etape) {
         for(unsigned decalage = 0; decalage != etape; ++decalage) {
-            // Simulation de chaque bille (au nombre indique dans la table a 
+            // Simulation de chaque bille (au nombre indique dans le tableau a 
             // l'etape precedente)
             for(unsigned bille = 0; 
                 bille != *(tab + getPosAEtape(etape-1) + decalage);
                 ++bille) 
                 // rand()%2 fait "tomber" les billes a gauche ou a droite 
-                // avec une prob. de 1/2
+                // avec une probabilité de 1/2
                 ++*(tab + getPosAEtape(etape) + decalage + rand()%2);
         }
     }
@@ -129,14 +129,14 @@ unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab) {
 
 unsigned* genereHisto(const unsigned* tabDerniereEtape, 
                       unsigned* histo, size_t tailleTab) {
-    // Definition du facteur de proportionnalite entre les billes et l'histogramme 
-    // selon la contrainte
-    const double FACTEUR = (double)(maxDansTab(tabDerniereEtape, tailleTab)
+    // Definition du ratio de proportionnalite entre les billes et l'histogramme 
+    // selon la contrainte (hauteur max de l'histogramme)
+    const double RATIO = (double)(maxDansTab(tabDerniereEtape, tailleTab)
                                     / HISTO_HAUTEUR_MAX);
 
     for(size_t i = 0; i != tailleTab; ++i) {
         // Stockage de la proportion dans le tableau, a l'entier le plus proche
-        *(histo + i) = (unsigned)(*(tabDerniereEtape + i) / FACTEUR + .5);
+        *(histo + i) = (unsigned)(*(tabDerniereEtape + i) / RATIO + .5);
     }
 
     return histo;
