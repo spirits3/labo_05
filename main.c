@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <assert.h>
+#include <time.h>   // time() pour seed rand
+#include <assert.h> 
 
 // VIDAGE DE STDIN PORTABLE
 #define VIDER_STDIN         do{char c; while((c = (char)getchar()) != '\n' \
