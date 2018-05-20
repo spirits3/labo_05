@@ -17,7 +17,7 @@
                  de la simulation, il faut donc se rendre au corps de la fonction
                  galton(int, int).
 
- Compilateur : MinGW-g++ <x.y.z>
+ Compilateur : gcc 6.3.0 
  -----------------------------------------------------------------------------------
 */
 
