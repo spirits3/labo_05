@@ -1,3 +1,26 @@
+/*
+ -----------------------------------------------------------------------------------
+ Laboratoire : Laboratoire no. 5 Galton
+ Fichier     : main.c
+ Auteur(s)   : Pierre Kohler <pierre.kohler@heig-vd.ch>
+ Date        : 15.08.2018
+
+ But         : - Simuler le probleme de la planche de Galton.
+               - Le programme doit afficher les resultats conformement aux exigences
+                 fixees, a savoir la comptabilisation du nombre de billes a chaque
+                 etape de la planche, ainsi qu'une representation de la situation
+                 finale sous forme d'histogramme.
+
+ Remarque(s) : - Le choix a ete fait de ne laisser que, comme unique tache de la
+                 fonction main, les actions en lien avec l'utilisateur (a savoir
+                 les saisies). Afin d'observer la procedure complete d'execution
+                 de la simulation, il faut donc se rendre au corps de la fonction
+                 galton(int, int).
+
+ Compilateur : MinGW-g++ <x.y.z>
+ -----------------------------------------------------------------------------------
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
