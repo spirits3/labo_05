@@ -26,15 +26,16 @@
 #include <time.h>   // time() pour seed rand
 #include <assert.h> 
 
-// VIDAGE DE STDIN PORTABLE
+// ----- MACROS -----
+// Vidage de stdin portable
 #define VIDER_STDIN         do{char c; while((c = (char)getchar()) != '\n' \
                                && c != EOF);} while(0)
+// Permet la conversion d'un define entier en chaine de caracteres
+// (Source : https://stackoverflow.com/questions/5459868 )
+#define STR_AUX(x)          #x
+#define STR(x)              STR_AUX(x)
 
-// PERMET LA CONVERSION D'UN DEFINE ENTIER EN CHAINE DE CARARCTERES
-#define STR_HELPER(x)       #x
-#define STR(x)              STR_HELPER(x)
-
-// CONSTANTES ENTIERES (ou CHAR)
+// ----- CONSTANTES ENTIERES (ou CHAR) -----
 #define NBR_BILLE_MIN       1000
 #define NBR_BILLE_MAX       30000
 #define NBR_ETAPE_MIN       10
@@ -42,32 +43,34 @@
 #define HISTO_HAUTEUR_MAX   15
 #define HISTO_SYMBOLE       '*'
 
-// CONSTANTES LITERALLES 
+// ----- CONSTANTES LITERALLES -----
 #define TXT_NBR_BILLE       "Entrez le nombre de billes [" STR(NBR_BILLE_MIN) \
                             " - " STR(NBR_BILLE_MAX) "] : "
 #define TXT_NBR_ETAPE       "Entrez le nombre de rangees de compteurs [" \
                             STR(NBR_ETAPE_MIN) " - " STR(NBR_ETAPE_MAX) "] : "
 #define TXT_ERREUR_SAISIE   "Saisie incorrecte. Veuillez SVP recommencer.\n"
 
-// FONCTION PRINCIPALE
+// ----- Prototypes des fonctions -----
+// Fonction principale
 void galton(unsigned nbrBille, unsigned nbrEtape);
 
-// FONCTIONS GENERANT LES TABLEAUX
+// Fonctions generant les tableaux
 unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab);
 unsigned* genereHisto(const unsigned* tabDerniereEtape, 
                       unsigned* histo, size_t tailleTab);
 
-// FONCTIONS D'AFFICHAGE
+// Fonctions d'affichage
 void afficheGalton(unsigned nbrEtape, unsigned* tab, unsigned tailleCase);
 void afficheHisto(const unsigned* histo, size_t tailleHisto,
                   unsigned tailleCase, char symbole);
 
-// FONCTIONS UTILITAIRES
+// Fonctions utilitaires
 size_t getPosAEtape(unsigned etape);
 unsigned maxDansTab(const unsigned* tab, size_t tailleTab);
 unsigned compteNbrChiffres(unsigned n);
 int getIntEntre(int min, int max, const char* requete, const char* erreur);
 
+// ----- Definitions des fonctions -----
 void galton(unsigned nbrBille, unsigned nbrEtape) {
     // "Seed" de la fonction rand()
     srand((unsigned)time(NULL));
