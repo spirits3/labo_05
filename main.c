@@ -72,7 +72,7 @@ unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab) {
     
     size_t tailleTab = getTailleGalton(nbrEtape);
     tab = (unsigned*)calloc(tailleTab, sizeof(unsigned));
-    assert(tab);
+    if(!tab) return NULL;
 
     // Sommet de la planche 
     *tab = nbrBille;
@@ -97,7 +97,7 @@ unsigned* genereHisto(const unsigned* tab, unsigned* histo, size_t taille) {
     free(histo); // par securite, si *histo n'est pas null
 
     histo = malloc(taille * sizeof(unsigned));    
-    assert(histo); 
+    if(!histo) return NULL; 
     
     // Definition du ratio de proportionnalite entre les billes et l'histogramme 
     // selon la contrainte (hauteur max de l'histogramme)
