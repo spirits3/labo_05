@@ -6,12 +6,11 @@
  Date        : 15.08.2018
 
  But         : - Simuler le probleme de la planche de Galton.
-               - Le programme doit afficher les resultats conformement aux exigences
+
+ Remarque(s) : - Le programme doit afficher les resultats conformement aux exigences
                  fixees, a savoir la comptabilisation du nombre de billes a chaque
                  etape de la planche, ainsi qu'une representation de la situation
                  finale sous forme d'histogramme.
-
- Remarque(s) :  
 
  Compilateur : gcc 6.3.0 
  -----------------------------------------------------------------------------------
@@ -48,8 +47,8 @@
 
 // ----- Prototypes des fonctions -----
 // Fonctions generant les tableaux
-void genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned** tab);
-void genereHisto(const unsigned* tab, unsigned** histo, size_t taille);
+unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab);
+unsigned* genereHisto(const unsigned* tab, unsigned* histo, size_t taille);
 
 // Fonctions d'affichage
 void afficheGalton(unsigned nbrEtape, unsigned* tab, unsigned tailleCase);
@@ -65,50 +64,51 @@ unsigned compteNbrChiffres(unsigned n);
 int getIntEntre(int min, int max, const char* requete, const char* erreur);
 
 // ----- Definitions des fonctions -----
-void genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned** tab) {
-    free(*tab); // par securite, si *tab n'est pas null
+unsigned* genereGalton(unsigned nbrBille, unsigned nbrEtape, unsigned* tab) {
+    free(tab); // par securite, si *tab n'est pas null
     
     // "Seed" de la fonction rand()
     srand((unsigned)time(NULL));
     
-    // Declaration du tableau destine a contenir la simulation de la table de Galton
     size_t tailleTab = getTailleGalton(nbrEtape);
-    *tab = (unsigned*)calloc(tailleTab, sizeof(unsigned));
-    if(!tab) return;
+    tab = (unsigned*)calloc(tailleTab, sizeof(unsigned));
+    assert(tab);
 
     // Sommet de la planche 
-    **tab = nbrBille;
+    *tab = nbrBille;
     
     for(unsigned etape = 1; etape != nbrEtape; ++etape) {
         for(unsigned decalage = 0; decalage != etape; ++decalage) {
             // Simulation de chaque bille (au nombre indique dans le tableau a 
             // l'etape precedente)
             for(unsigned bille = 0; 
-                bille != *(*tab + getPosAEtape(etape-1) + decalage);
+                bille != *(tab + getPosAEtape(etape-1) + decalage);
                 ++bille) 
                 // rand()%2 fait "tomber" les billes a gauche ou a droite 
                 // avec une probabilité de 1/2
-                ++*(*tab + getPosAEtape(etape) + decalage + rand()%2);
+                ++*(tab + getPosAEtape(etape) + decalage + rand()%2);
         }
     }
+
+    return tab;
 }
 
-void genereHisto(const unsigned* tab, unsigned** histo, size_t taille) {
-    free(*histo); // par securite, si *histo n'est pas null
+unsigned* genereHisto(const unsigned* tab, unsigned* histo, size_t taille) {
+    free(histo); // par securite, si *histo n'est pas null
 
-    // Declaration du tableau destine a contenir l'histogramme
-    *histo = malloc(taille * sizeof(unsigned));    
-    if(!histo) return; 
+    histo = malloc(taille * sizeof(unsigned));    
+    assert(histo); 
     
     // Definition du ratio de proportionnalite entre les billes et l'histogramme 
     // selon la contrainte (hauteur max de l'histogramme)
     const double RATIO = (double)(maxDansTab(tab, taille)
                                     / HISTO_HAUTEUR_MAX);
-
     for(size_t i = 0; i != taille; ++i) {
         // Stockage de la proportion dans le tableau, a l'entier le plus proche
-        *(*histo + i) = (unsigned)(*(tab + i) / RATIO + .5);
+        *(histo + i) = (unsigned)(*(tab + i) / RATIO + .5);
     }
+
+    return histo;
 }
 
 void afficheGalton(unsigned nbrEtape, unsigned* tab, unsigned tailleCase) {
@@ -139,7 +139,7 @@ void afficheHisto(const unsigned* histo, size_t tailleHisto,
 }
 
 size_t getPosAEtape(unsigned etape) {
-    // somme des n entiers jusqu'a "etape" (Gauss)
+    // Somme des n entiers jusqu'a "etape" (Gauss)
     return (size_t)(etape * (etape + 1) / 2);
 }
 
@@ -201,8 +201,8 @@ int main(void) {
     unsigned *tab = NULL, *histo = NULL;
     size_t tailleHisto = (size_t)nbrEtape;
 
-    genereGalton(nbrBille, nbrEtape, &tab);
-    genereHisto(tab + getPosAEtape(nbrEtape - 1), &histo, nbrEtape);
+    tab   = genereGalton(nbrBille, nbrEtape, tab);
+    histo = genereHisto(tab + getPosAEtape(nbrEtape - 1), histo, nbrEtape);
     
     // choix d'une taille de case adaptee au nombre de billes
     // et identique pour la planche et l'histogramme
